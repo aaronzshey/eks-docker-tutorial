@@ -92,5 +92,41 @@ That explanation probably sucked that's why I'm unemployed.
 
 Anyway, it's time to get back to mindlessly copying and pasting commands.
 
-You need to link 
+You need to link your kubectl config to your EKS cluster - basically, Kubernetes needs to know where to deploy your sample application.  If you don't do this step, you can open Docker and see that whatever you are trying to deploy is currently running on your own machine.
 
+Enter this command:
+
+```
+aws eks update-kubeconfig --region us-west-1 --name web-quickstart
+
+```
+
+As you know by now, replace the region with your region of choice, and replace name with the name you put into the previous config file.
+
+
+Now, you can finish deploying like usual.  Copying the steps from [AWS' quickstart guide](https://docs.aws.amazon.com/eks/latest/userguide/quickstart.html):
+
+create `ingressclass.yaml`:
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: alb
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: eks.amazonaws.com/alb
+```
+
+And run the following commands:
+
+```
+kubectl apply -f ingressclass.yaml
+kubectl create namespace game-2048 --save-config
+kubectl apply -n game-2048 -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.8.0/docs/examples/2048/2048_full.yaml
+kubectl get ingress -n game-2048
+```
+
+Wait a little bit, and then visit the url displayed by the `get ingress` command.
+
+That's it!  Hope it worked, if it didn't file an issue please :)
